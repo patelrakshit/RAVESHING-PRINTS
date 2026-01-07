@@ -4,16 +4,18 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Minus, Plus, ShoppingCart, MessageCircle, Upload, X } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, MessageCircle, Upload, X, Printer } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useStore } from '@/lib/store';
 import type { Product } from '@/types/product';
+import { PrintPreviewModal } from '@/components/product/PrintPreviewModal';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [designFiles, setDesignFiles] = useState<File[]>([]);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
   const { addToCart } = useStore();
 
   const { data: product, isLoading, error } = useQuery<Product>({
@@ -43,14 +45,10 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (product) {
-      const unitPrice = calculatePrice(product.price, quantity);
-      addToCart({
-        id: product._id,
-        title: product.title,
-        price: unitPrice,
-        image: product.image[0],
-        quantity,
-      });
+      const images = designFiles.length > 0 
+        ? designFiles.map(f => URL.createObjectURL(f)) 
+        : undefined;
+      addToCart(product, quantity, images);
       alert(`Added ${quantity} items to cart!`);
     }
   };
@@ -298,6 +296,13 @@ export default function ProductDetailPage() {
               <MessageCircle className="w-5 h-5" />
               Order via WhatsApp
             </button>
+            <button
+              onClick={() => setShowPrintPreview(true)}
+              className="w-full btn-secondary flex items-center justify-center gap-2"
+            >
+              <Printer className="w-5 h-5" />
+              Print Quote/Preview
+            </button>
           </div>
 
           <p className="text-sm text-gray-500 text-center">
@@ -305,6 +310,17 @@ export default function ProductDetailPage() {
           </p>
         </div>
       </div>
+
+      {/* Print Preview Modal */}
+      {showPrintPreview && (
+        <PrintPreviewModal
+          product={product}
+          quantity={quantity}
+          unitPrice={unitPrice}
+          totalPrice={totalPrice}
+          onClose={() => setShowPrintPreview(false)}
+        />
+      )}
     </div>
   );
 }

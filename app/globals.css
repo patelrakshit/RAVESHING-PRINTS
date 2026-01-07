@@ -21,3 +21,18 @@
     @apply bg-gray-100 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors;
   }
 }
+
+/* Print Styles */
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+  }
+  
+  @page {
+    margin: 1cm;
+  }
+}

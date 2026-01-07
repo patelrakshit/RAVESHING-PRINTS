@@ -22,6 +22,13 @@ interface StoreState {
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   
+  // Wishlist
+  wishlist: Product[];
+  addToWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: string) => void;
+  toggleWishlist: (product: Product) => void;
+  isInWishlist: (productId: string) => boolean;
+  
   // User
   user: User | null;
   isAuthenticated: boolean;
@@ -31,7 +38,7 @@ interface StoreState {
 
 export const useStore = create<StoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Cart state
       cart: [],
       
@@ -67,6 +74,34 @@ export const useStore = create<StoreState>()(
         })),
       
       clearCart: () => set({ cart: [] }),
+      
+      // Wishlist state
+      wishlist: [],
+      
+      addToWishlist: (product) =>
+        set((state) => {
+          const exists = state.wishlist.find((item) => item._id === product._id);
+          if (exists) return state;
+          return { wishlist: [...state.wishlist, product] };
+        }),
+      
+      removeFromWishlist: (productId) =>
+        set((state) => ({
+          wishlist: state.wishlist.filter((item) => item._id !== productId),
+        })),
+      
+      toggleWishlist: (product) =>
+        set((state) => {
+          const exists = state.wishlist.find((item) => item._id === product._id);
+          if (exists) {
+            return { wishlist: state.wishlist.filter((item) => item._id !== product._id) };
+          }
+          return { wishlist: [...state.wishlist, product] };
+        }),
+      
+      isInWishlist: (productId) => {
+        return get().wishlist.some((item) => item._id === productId);
+      },
       
       // User state
       user: null,
